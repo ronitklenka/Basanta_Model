@@ -1,0 +1,12 @@
+
+{
+  "name": "Basanta Model",
+  "short_name": "Basanta",
+  "description": "Your personal AI assistant",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#111111",
+  "theme_color": "#111111"
+}
