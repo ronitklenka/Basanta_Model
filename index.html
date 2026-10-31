@@ -1,1 +1,459 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101010">
+<title>Basanta_Model</title>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101010;color:white;font-family:Arial,sans-serif}
+button,select,textarea{font:inherit}
+.app{height:100dvh;display:flex;overflow:hidden}
+.sidebar{width:270px;background:#191919;border-right:1px solid #333;padding:15px;display:flex;flex-direction:column;z-index:5}
+.brand{font-size:21px;font-weight:bold;padding:12px 5px 24px}
+.new{padding:13px;border:1px solid #444;border-radius:12px;background:#222;color:white;text-align:left;cursor:pointer}
+.search{margin-top:12px;width:100%;padding:11px;background:#252525;border:1px solid #444;border-radius:10px;color:white}
+.history{overflow:auto;flex:1;margin-top:15px}
+.history-item{padding:12px;border-radius:9px;display:flex;justify-content:space-between;gap:6px;cursor:pointer;color:#ddd}
+.history-item.active,.history-item:hover{background:#303030}
+.history-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.history-item button{background:none;border:0;color:#aaa}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{height:60px;border-bottom:1px solid #303030;display:flex;align-items:center;padding:0 15px;gap:12px}
+.menu{background:none;color:white;border:0;font-size:23px}
+.title{font-weight:bold}
+.language{margin-left:auto;background:#222;color:white;border:1px solid #444;border-radius:8px;padding:9px}
+.messages{flex:1;overflow:auto;padding:25px 16px;display:flex;flex-direction:column;gap:20px}
+.welcome{margin:auto;text-align:center;color:#ddd}
+.welcome h1{font-size:28px}
+.welcome p{color:#999}
+.message{max-width:850px;width:fit-content;padding:13px 16px;border-radius:15px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+.user{align-self:flex-end;background:#303030}
+.assistant{align-self:flex-start;background:#191919;border:1px solid #333}
+.message img{max-width:220px;max-height:220px;display:block;border-radius:10px;margin-bottom:8px}
+.actions{display:flex;gap:12px;margin-top:8px}
+.actions button{background:none;border:0;color:#aaa;font-size:12px;cursor:pointer}
+.composer{padding:12px 15px 18px;border-top:1px solid #303030}
+.inputbox{max-width:900px;margin:auto;background:#202020;border:1px solid #484848;border-radius:20px;padding:9px;display:flex;align-items:flex-end;gap:5px}
+textarea{flex:1;min-width:0;max-height:130px;min-height:42px;resize:none;background:transparent;color:white;border:0;outline:0;padding:12px;font-size:16px}
+.tool{width:40px;height:40px;flex-shrink:0;background:transparent;color:white;border:0;border-radius:12px;font-size:20px;cursor:pointer}
+.tool:active{background:#444}
+.send{background:white;color:black;font-size:22px}
+.file-preview{max-width:900px;margin:0 auto 8px;display:flex;gap:8px;flex-wrap:wrap}
+.preview{background:#292929;border:1px solid #555;padding:7px 10px;border-radius:9px;font-size:12px}
+.preview button{background:none;color:white;border:0;margin-left:8px}
+.note{text-align:center;color:#777;font-size:11px;margin-top:10px}
+.status{font-size:12px;color:#aaa;padding:5px 10px;max-width:900px;margin:auto}
+.hidden{display:none!important}
+@media(max-width:650px){
+ .sidebar{position:fixed;left:-290px;top:0;bottom:0;transition:left .2s}
+ .sidebar.open{left:0}
+ .menu{display:block}
+ .message{max-width:94%}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<aside class="sidebar" id="sidebar">
+ <div class="brand">Basanta_Model</div>
+ <button class="new" onclick="newChat()">＋ New chat</button>
+ <input class="search" id="search" placeholder="Search chats..." oninput="renderHistory()">
+ <div class="history" id="history"></div>
+</aside>
+
+<main class="main">
+ <header class="topbar">
+  <button class="menu" onclick="toggleSidebar()">☰</button>
+  <div class="title">Basanta Model</div>
+  <select class="language" id="language" onchange="changeLanguage()">
+   <option value="en-IN">English</option>
+   <option value="hi-IN">हिन्दी</option>
+  </select>
+ </header>
+
+ <section class="messages" id="messages"></section>
+
+ <footer class="composer">
+  <div class="file-preview" id="filePreview"></div>
+  <div class="status" id="status"></div>
+
+  <div class="inputbox">
+   <button class="tool" onclick="document.getElementById('files').click()" title="Upload file">＋</button>
+   <button class="tool" onclick="document.getElementById('camera').click()" title="Take photo">📷</button>
+
+   <textarea id="prompt" rows="1"
+    placeholder="Message Basanta Model..."
+    onkeydown="handleKey(event)"></textarea>
+
+   <button class="tool" id="mic" onclick="startVoice()" title="Speak">🎙</button>
+   <button class="tool send" onclick="sendMessage()" title="Send">↑</button>
+  </div>
+
+  <div class="note">Basanta Model can make mistakes. Check important information.</div>
+ </footer>
+</main>
+</div>
+
+<input id="files" class="hidden" type="file" multiple
+ accept="image/*,.pdf,.txt,.docx" onchange="addFiles(this.files)">
+
+<input id="camera" class="hidden" type="file"
+ accept="image/*" capture="environment" onchange="addFiles(this.files)">
+
+<script>
+const API_URL = "https://YOUR-CLOUDFLARE-WORKER.workers.dev/api/chat";
+const KEY = "basanta_model_chats";
+
+let chats = JSON.parse(localStorage.getItem(KEY) || "[]");
+let currentId = chats[0]?.id || null;
+let attachments = [];
+let recognition = null;
+let busy = false;
+
+function save(){
+ localStorage.setItem(KEY,JSON.stringify(chats));
+}
+
+function current(){
+ return chats.find(c=>c.id===currentId);
+}
+
+function newChat(){
+ const c={id:Date.now().toString(),title:"New chat",messages:[]};
+ chats.unshift(c);
+ currentId=c.id;
+ save();
+ render();
+ closeSidebar();
+}
+
+function render(){
+ renderHistory();
+ renderMessages();
+ renderFiles();
+}
+
+function renderHistory(){
+ const box=document.getElementById("history");
+ const query=document.getElementById("search").value.toLowerCase();
+ box.innerHTML="";
+ chats.filter(c=>c.title.toLowerCase().includes(query)).forEach(c=>{
+  const item=document.createElement("div");
+  item.className="history-item"+(c.id===currentId?" active":"");
+  const label=document.createElement("span");
+  label.textContent=c.title;
+  label.onclick=()=>{currentId=c.id;render();closeSidebar()};
+  const del=document.createElement("button");
+  del.textContent="×";
+  del.title="Delete chat";
+  del.onclick=e=>{
+   e.stopPropagation();
+   if(confirm("Delete this chat?")){
+    chats=chats.filter(x=>x.id!==c.id);
+    if(currentId===c.id)currentId=chats[0]?.id||null;
+    save();render();
+   }
+  };
+  item.append(label,del);
+  box.appendChild(item);
+ });
+}
+
+function renderMessages(){
+ const box=document.getElementById("messages");
+ box.innerHTML="";
+ const c=current();
+
+ if(!c||!c.messages.length){
+  const w=document.createElement("div");
+  w.className="welcome";
+  const h=document.createElement("h1");
+  h.textContent="What can I help with?";
+  const p=document.createElement("p");
+  p.textContent="Welcome to Basanta Model";
+  w.append(h,p);
+  box.appendChild(w);
+  return;
+ }
+
+ c.messages.forEach(m=>{
+  const bubble=document.createElement("div");
+  bubble.className="message "+m.role;
+
+  if(m.image){
+   const img=document.createElement("img");
+   img.src=m.image;
+   img.alt="Uploaded image";
+   bubble.appendChild(img);
+  }
+
+  const text=document.createElement("div");
+  text.textContent=m.content;
+  bubble.appendChild(text);
+
+  if(m.role==="assistant"){
+   const actions=document.createElement("div");
+   actions.className="actions";
+
+   const copy=document.createElement("button");
+   copy.textContent="Copy";
+   copy.onclick=()=>navigator.clipboard.writeText(m.content);
+
+   const speak=document.createElement("button");
+   speak.textContent="Speak";
+   speak.onclick=()=>speakText(m.content);
+
+   actions.append(copy,speak);
+   bubble.appendChild(actions);
+  }
+  box.appendChild(bubble);
+ });
+ box.scrollTop=box.scrollHeight;
+}
+
+async function addFiles(list){
+ for(const file of list){
+  if(file.size>8*1024*1024){
+   alert(file.name+" is larger than 8 MB. Please choose a smaller file.");
+   continue;
+  }
+
+  const item={name:file.name,type:file.type,data:null,text:""};
+
+  if(file.type.startsWith("image/")){
+   item.data=await readDataURL(file);
+  }else if(file.type==="text/plain"||file.name.endsWith(".txt")){
+   item.text=await file.text();
+  }else if(file.type==="application/pdf"||file.name.endsWith(".pdf")){
+   item.text=await extractPDF(file);
+  }else if(file.name.endsWith(".docx")){
+   item.text=await extractDOCX(file);
+  }else{
+   alert("This file type is not supported yet: "+file.name);
+   continue;
+  }
+  attachments.push(item);
+ }
+ renderFiles();
+ document.getElementById("files").value="";
+ document.getElementById("camera").value="";
+}
+
+function readDataURL(file){
+ return new Promise((resolve,reject)=>{
+  const r=new FileReader();
+  r.onload=()=>resolve(r.result);
+  r.onerror=reject;
+  r.readAsDataURL(file);
+ });
+}
+
+async function extractPDF(file){
+ try{
+  if(!window.pdfjsLib)throw Error("PDF reader is not loaded");
+  const buffer=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buffer}).promise;
+  let output="";
+  for(let i=1;i<=Math.min(pdf.numPages,30);i++){
+   const page=await pdf.getPage(i);
+   const content=await page.getTextContent();
+   output+=content.items.map(x=>x.str).join(" ")+"\n";
+  }
+  return output||"[No selectable text found in PDF]";
+ }catch(e){
+  return "[Could not extract PDF text: "+e.message+"]";
+ }
+}
+
+async function extractDOCX(file){
+ try{
+  if(!window.mammoth)throw Error("DOCX reader is not loaded");
+  const result=await mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()});
+  return result.value;
+ }catch(e){
+  return "[Could not extract DOCX text: "+e.message+"]";
+ }
+}
+
+function renderFiles(){
+ const box=document.getElementById("filePreview");
+ box.innerHTML="";
+ attachments.forEach((a,i)=>{
+  const tag=document.createElement("div");
+  tag.className="preview";
+  tag.textContent=a.name;
+  const remove=document.createElement("button");
+  remove.textContent="×";
+  remove.onclick=()=>{attachments.splice(i,1);renderFiles()};
+  tag.appendChild(remove);
+  box.appendChild(tag);
+ });
+}
+
+function changeLanguage(){
+ const lang=document.getElementById("language").value;
+ document.getElementById("prompt").placeholder=
+  lang==="hi-IN"?"Basanta Model को संदेश भेजें...":"Message Basanta Model...";
+}
+
+function startVoice(){
+ const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SpeechRecognition){
+  alert("Voice recognition is not supported in this browser. Try Chrome.");
+  return;
+ }
+ if(recognition){recognition.stop();recognition=null;return;}
+
+ recognition=new SpeechRecognition();
+ recognition.lang=document.getElementById("language").value;
+ recognition.continuous=false;
+ recognition.interimResults=false;
+
+ recognition.onstart=()=>document.getElementById("status").textContent="Listening...";
+ recognition.onresult=e=>{
+  document.getElementById("prompt").value+=e.results[0][0].transcript;
+  document.getElementById("status").textContent="";
+ };
+ recognition.onerror=()=>document.getElementById("status").textContent="Voice input failed. Try again.";
+ recognition.onend=()=>{
+  document.getElementById("status").textContent="";
+  recognition=null;
+ };
+ recognition.start();
+}
+
+function speakText(text){
+ if(!("speechSynthesis" in window)){
+  alert("Speech output is not supported by this browser.");
+  return;
+ }
+ speechSynthesis.cancel();
+ const utterance=new SpeechSynthesisUtterance(text);
+ const lang=document.getElementById("language").value;
+ utterance.lang=lang;
+
+ const voices=speechSynthesis.getVoices();
+ const matching=voices.filter(v=>v.lang.toLowerCase().startsWith(lang.slice(0,2).toLowerCase()));
+ const male=matching.find(v=>/male|man|hemant|ravi|david|daniel|alex|mark/i.test(v.name));
+ utterance.voice=male||matching[0]||null;
+ utterance.rate=0.95;
+ speechSynthesis.speak(utterance);
+}
+
+function handleKey(e){
+ if(e.key==="Enter"&&!e.shiftKey){
+  e.preventDefault();sendMessage();
+ }
+}
+
+async function sendMessage(){
+ if(busy)return;
+
+ const input=document.getElementById("prompt");
+ const prompt=input.value.trim();
+ if(!prompt&&!attachments.length)return;
+
+ if(!currentId)newChat();
+ const c=current();
+
+ const files=attachments.map(a=>({...a}));
+ const image=files.find(f=>f.data)?.data||null;
+ const fileText=files.filter(f=>f.text).map(f=>"FILE: "+f.name+"\n"+f.text).join("\n\n");
+ const fullPrompt=[prompt,fileText].filter(Boolean).join("\n\n");
+
+ c.messages.push({
+  role:"user",
+  content:fullPrompt||"Please examine this image.",
+  image:image
+ });
+
+ if(c.messages.length===1)c.title=(prompt||files[0].name).slice(0,35);
+
+ input.value="";
+ attachments=[];
+ renderFiles();
+ save();
+ render();
+
+ busy=true;
+ document.getElementById("status").textContent="Basanta Model is thinking...";
+
+ try{
+  const messages=c.messages.map((m,index)=>{
+   if(m.role==="user"&&m.image){
+    return {
+     role:"user",
+     content:[
+      {type:"text",text:m.content},
+      {type:"image_url",image_url:{url:m.image}}
+     ]
+    };
+   }
+   return {role:m.role,content:m.content};
+  });
+
+  const response=await fetch(API_URL,{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({
+    messages:messages,
+    language:document.getElementById("language").value
+   })
+  });
+
+  if(!response.ok)throw Error("Backend returned "+response.status);
+  const data=await response.json();
+  const answer=data.response||data.reply||data.result?.response||
+   data.choices?.[0]?.message?.content;
+
+  if(!answer)throw Error("No answer received from AI backend.");
+
+  c.messages.push({role:"assistant",content:answer});
+  save();
+  render();
+ }catch(error){
+  c.messages.push({
+   role:"assistant",
+   content:"I could not connect to the AI service. We still need to deploy the Cloudflare backend and set its URL. Details: "+error.message
+  });
+  save();
+  render();
+ }finally{
+  busy=false;
+  document.getElementById("status").textContent="";
+ }
+}
+
+function toggleSidebar(){
+ document.getElementById("sidebar").classList.toggle("open");
+}
+function closeSidebar(){
+ document.getElementById("sidebar").classList.remove("open");
+}
+
+if(!currentId)newChat();
+else render();
+
+if("speechSynthesis" in window){
+ speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();
+}
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+if(window.pdfjsLib){
+ pdfjsLib.GlobalWorkerOptions.workerSrc=
+ "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
+
+</body>
+  </html>
+  
