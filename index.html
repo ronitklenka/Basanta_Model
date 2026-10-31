@@ -7,116 +7,67 @@
 <meta name="theme-color" content="#111111">
 <meta name="description" content="Basanta Model - AI assistant">
 <title>Basanta Model</title>
-
 <link rel="manifest" href="manifest.json">
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
-
 <style>
 *{box-sizing:border-box}
 :root{color-scheme:dark}
-body{
- margin:0;background:#111;color:#eee;
- font-family:Arial,Helvetica,sans-serif;
- height:100dvh;overflow:hidden
-}
+body{margin:0;background:#111;color:#eee;font-family:Arial,Helvetica,sans-serif;height:100dvh;overflow:hidden}
 button,input,textarea{font:inherit}
 button{cursor:pointer}
 .app{display:flex;height:100dvh;width:100%}
-.sidebar{
- width:270px;background:#080808;border-right:1px solid #292929;
- display:flex;flex-direction:column;padding:14px;gap:12px;
- transition:transform .25s;z-index:5
-}
+.sidebar{width:270px;background:#080808;border-right:1px solid #292929;display:flex;flex-direction:column;padding:14px;gap:12px;transition:transform .25s;z-index:5}
 .brand{font-size:22px;font-weight:bold;padding:12px 5px}
-.newchat,.sidebtn{
- background:#191919;color:#eee;border:1px solid #333;
- border-radius:10px;padding:12px;text-align:left;width:100%
-}
+.newchat,.sidebtn{background:#191919;color:#eee;border:1px solid #333;border-radius:10px;padding:12px;text-align:left;width:100%}
 .newchat:hover,.sidebtn:hover{background:#292929}
-.search{
- width:100%;background:#171717;color:white;border:1px solid #333;
- padding:11px;border-radius:9px;outline:none
-}
+.search{width:100%;background:#171717;color:white;border:1px solid #333;padding:11px;border-radius:9px;outline:none}
 .history{overflow:auto;flex:1}
-.chatitem{
- padding:11px;border-radius:9px;display:flex;align-items:center;
- gap:8px;margin:3px 0;color:#ccc
-}
+.chatitem{padding:11px;border-radius:9px;display:flex;align-items:center;gap:8px;margin:3px 0;color:#ccc}
 .chatitem.active,.chatitem:hover{background:#222}
 .chatname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .smallbtn{background:none;color:#aaa;border:0;padding:4px}
 .sidebarbottom{display:grid;gap:8px}
 .main{flex:1;min-width:0;display:flex;flex-direction:column}
-.topbar{
- height:58px;border-bottom:1px solid #292929;display:flex;
- align-items:center;padding:0 14px;gap:12px
-}
+.topbar{min-height:58px;border-bottom:1px solid #292929;display:flex;align-items:center;padding:0 14px;gap:12px}
 .menu{background:none;border:0;color:white;font-size:23px}
 .topname{font-size:17px;font-weight:bold}
-.language{
- margin-left:auto;background:#1b1b1b;color:white;
- border:1px solid #333;border-radius:8px;padding:8px
-}
-.messages{
- flex:1;overflow-y:auto;padding:22px 15px 30px;
- display:flex;flex-direction:column;gap:22px
-}
+.language{margin-left:auto;background:#1b1b1b;color:white;border:1px solid #333;border-radius:8px;padding:8px;max-width:125px}
+.drivebtn{background:#202020;color:#eee;border:1px solid #444;border-radius:8px;padding:8px 10px;white-space:nowrap}
+.messages{flex:1;overflow-y:auto;padding:22px 15px 30px;display:flex;flex-direction:column;gap:22px}
 .welcome{margin:auto;text-align:center;max-width:550px;padding:25px}
 .welcome h1{font-size:30px;margin-bottom:8px}
 .welcome p{color:#aaa;line-height:1.6}
 .message{width:100%;max-width:850px;margin:0 auto}
-.bubble{
- padding:14px 17px;border-radius:16px;line-height:1.65;
- overflow-wrap:anywhere;white-space:pre-wrap
-}
+.bubble{padding:14px 17px;border-radius:16px;line-height:1.65;overflow-wrap:anywhere;white-space:pre-wrap}
 .user .bubble{background:#252525;margin-left:auto;max-width:85%;width:fit-content}
 .assistant .bubble{background:transparent;padding-left:0;padding-right:0}
-.msgactions{display:flex;gap:8px;margin-top:7px}
-.msgactions button{
- color:#aaa;background:#1c1c1c;border:1px solid #333;
- border-radius:7px;padding:6px 9px;font-size:12px
-}
+.msgactions{display:flex;gap:8px;margin-top:7px;flex-wrap:wrap}
+.msgactions button{color:#aaa;background:#1c1c1c;border:1px solid #333;border-radius:7px;padding:6px 9px;font-size:12px}
 .msgimage{max-width:220px;max-height:220px;border-radius:10px;display:block;margin-bottom:8px}
 .composer-area{padding:10px 15px 15px}
-.composer{
- max-width:850px;margin:auto;background:#1b1b1b;border:1px solid #3b3b3b;
- border-radius:20px;padding:10px;display:flex;flex-direction:column;gap:8px
-}
-#prompt{
- width:100%;resize:none;min-height:48px;max-height:150px;
- background:transparent;color:white;border:0;outline:none;
- padding:8px;font-size:16px
-}
+.composer{max-width:850px;margin:auto;background:#1b1b1b;border:1px solid #3b3b3b;border-radius:20px;padding:10px;display:flex;flex-direction:column;gap:8px}
+#prompt{width:100%;resize:none;min-height:48px;max-height:150px;background:transparent;color:white;border:0;outline:none;padding:8px;font-size:16px}
 .tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-.toolbtn{
- background:#292929;color:#eee;border:0;border-radius:9px;
- padding:9px 11px
-}
-.send{
- margin-left:auto;background:white;color:black;border:0;
- border-radius:10px;padding:10px 17px;font-weight:bold
-}
+.toolbtn{background:#292929;color:#eee;border:0;border-radius:9px;padding:9px 11px}
+.send{margin-left:auto;background:white;color:black;border:0;border-radius:10px;padding:10px 17px;font-weight:bold}
 #fileInput{display:none}
 .status{text-align:center;color:#888;font-size:12px;padding:5px}
-.typing{color:#aaa;font-size:14px}
 @media(max-width:700px){
- .sidebar{
-  position:fixed;left:0;top:0;bottom:0;
-  transform:translateX(-105%);width:280px
- }
+ .sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-105%);width:280px}
  .sidebar.open{transform:translateX(0)}
  .messages{padding:18px 13px}
  .composer-area{padding:8px}
  .welcome h1{font-size:25px}
+ .topbar{gap:7px;padding:0 9px}
+ .drivebtn{padding:8px 7px;font-size:12px}
+ .language{padding:7px;font-size:12px}
+ .topname{font-size:15px}
 }
 </style>
 </head>
-
 <body>
 <div class="app">
-
 <aside class="sidebar" id="sidebar">
  <div class="brand">✦ Basanta Model</div>
  <button class="newchat" onclick="newChat()">＋ New chat</button>
@@ -124,6 +75,7 @@ button{cursor:pointer}
  <div class="history" id="history"></div>
  <div class="sidebarbottom">
   <button class="sidebtn" onclick="exportHistory()">↓ Export conversations</button>
+  <button class="sidebtn" onclick="backupNow()">☁ Back up to Google Drive</button>
   <button class="sidebtn" onclick="clearHistory()">Clear all history</button>
  </div>
 </aside>
@@ -132,6 +84,7 @@ button{cursor:pointer}
  <header class="topbar">
   <button class="menu" onclick="toggleSidebar()">☰</button>
   <div class="topname">Basanta Model</div>
+  <button class="drivebtn" id="driveBtn" onclick="connectDrive()">Connect Drive</button>
   <select class="language" id="language">
    <option value="auto">Auto language</option>
    <option value="English">English</option>
@@ -140,7 +93,7 @@ button{cursor:pointer}
  </header>
 
  <section class="messages" id="messages">
-  <div class="welcome" id="welcome">
+  <div class="welcome">
    <h1>Welcome to Basanta ✦</h1>
    <p>Your AI assistant. Ask questions, learn something new, upload files or talk using your voice.</p>
   </div>
@@ -167,30 +120,37 @@ button{cursor:pointer}
 <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden onchange="handleFiles(event)">
 
 <script>
-const API_URL = "https://basanta-model-api.ronitklenka.workers.dev/api/chat";
+const API_BASE="https://basanta-model-api.ronitklenka.workers.dev";
+const API_URL=API_BASE+"/api/chat";
+const DRIVE_STATUS_URL=API_BASE+"/api/drive/status";
+const DRIVE_UPLOAD_URL=API_BASE+"/api/drive/upload";
+const DRIVE_BACKUP_URL=API_BASE+"/api/drive/backup";
+const STORAGE_KEY="basanta_model_chats_v1";
 
-const STORAGE_KEY = "basanta_model_chats_v1";
-let chats = loadChats();
-let currentId = null;
-let attachments = [];
-let speechEnabled = true;
-let busy = false;
+let chats=loadChats();
+let currentId=null;
+let attachments=[];
+let speechEnabled=true;
+let busy=false;
+let driveConnected=false;
+let backupTimer=null;
 
 if(window.pdfjsLib){
- pdfjsLib.GlobalWorkerOptions.workerSrc =
+ pdfjsLib.GlobalWorkerOptions.workerSrc=
  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 }
 
 function loadChats(){
- try{return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []}
+ try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||[]}
  catch(e){return []}
 }
 
 function saveChats(){
  try{
   localStorage.setItem(STORAGE_KEY,JSON.stringify(chats));
+  scheduleDriveBackup();
  }catch(e){
-  setStatus("Storage is full. Export or delete old conversations.");
+  setStatus("Phone storage is full. Export or delete old conversations.");
  }
 }
 
@@ -227,15 +187,15 @@ function renderHistory(){
  container.innerHTML="";
 
  chats.filter(c=>
-  c.title.toLowerCase().includes(query) ||
-  c.messages.some(m=>(m.text||"").toLowerCase().includes(query))
+  (c.title||"").toLowerCase().includes(query)||
+  (c.messages||[]).some(m=>(m.text||"").toLowerCase().includes(query))
  ).forEach(chat=>{
   const row=document.createElement("div");
   row.className="chatitem"+(chat.id===currentId?" active":"");
 
   const name=document.createElement("span");
   name.className="chatname";
-  name.textContent=chat.title;
+  name.textContent=chat.title||"Untitled";
   name.onclick=()=>selectChat(chat.id);
 
   const rename=document.createElement("button");
@@ -244,7 +204,7 @@ function renderHistory(){
   rename.title="Rename";
   rename.onclick=()=>{
    const value=prompt("Enter conversation name:",chat.title);
-   if(value && value.trim()){
+   if(value&&value.trim()){
     chat.title=value.trim();
     saveChats();
     renderHistory();
@@ -275,7 +235,7 @@ function renderMessages(){
  area.innerHTML="";
  const chat=activeChat();
 
- if(!chat || !chat.messages.length){
+ if(!chat||!chat.messages.length){
   const welcome=document.createElement("div");
   welcome.className="welcome";
   welcome.innerHTML="<h1>Welcome to Basanta ✦</h1><p>Your AI assistant. Ask questions, learn something new, upload files or talk using your voice.</p>";
@@ -303,7 +263,7 @@ function addMessageElement(msg,index){
  }
 
  const text=document.createElement("div");
- text.textContent=msg.text || "";
+ text.textContent=msg.text||"";
  bubble.appendChild(text);
  wrap.appendChild(bubble);
 
@@ -313,11 +273,11 @@ function addMessageElement(msg,index){
 
   const copy=document.createElement("button");
   copy.textContent="Copy";
-  copy.onclick=()=>copyText(msg.text || "");
+  copy.onclick=()=>copyText(msg.text||"");
 
   const speak=document.createElement("button");
   speak.textContent="🔊 Listen";
-  speak.onclick=()=>speakText(msg.text || "");
+  speak.onclick=()=>speakText(msg.text||"");
 
   const regen=document.createElement("button");
   regen.textContent="Regenerate";
@@ -333,11 +293,12 @@ function addMessageElement(msg,index){
 function addStoredMessage(role,text,image=null){
  const chat=activeChat();
  if(!chat)return;
+
  chat.messages.push({role,text,image});
  chat.updated=Date.now();
 
- if(chat.title==="New chat" && role==="user"){
-  chat.title=(text || "Image conversation").slice(0,35);
+ if(chat.title==="New chat"&&role==="user"){
+  chat.title=(text||"Image conversation").slice(0,35);
  }
 
  saveChats();
@@ -354,13 +315,16 @@ function setStatus(text){
 function toggleSidebar(){
  document.getElementById("sidebar").classList.toggle("open");
 }
+
 function closeSidebar(){
  document.getElementById("sidebar").classList.remove("open");
 }
 
 function copyText(text){
  if(navigator.clipboard){
-  navigator.clipboard.writeText(text).then(()=>setStatus("Copied."));
+  navigator.clipboard.writeText(text)
+   .then(()=>setStatus("Copied."))
+   .catch(()=>setStatus("Copy failed."));
  }else{
   setStatus("Copy is not supported in this browser.");
  }
@@ -371,6 +335,7 @@ function speakText(text){
   setStatus("Speech is not supported in this browser.");
   return;
  }
+
  speechSynthesis.cancel();
  const utterance=new SpeechSynthesisUtterance(text);
  const lang=document.getElementById("language").value;
@@ -381,11 +346,10 @@ function speakText(text){
   v.lang.toLowerCase().startsWith(lang==="Hindi"?"hi":"en")
  );
 
- // Browser voice gender is not reliably identifiable.
- // Prefer a voice whose name suggests a male voice, if available.
  const male=matching.find(v=>
   /male|man|david|mark|ravi|hemant|madhur/i.test(v.name)
  );
+
  if(male)utterance.voice=male;
  else if(matching.length)utterance.voice=matching[0];
 
@@ -398,7 +362,8 @@ function toggleSpeech(){
 }
 
 function startVoice(){
- const Recognition=window.SpeechRecognition || window.webkitSpeechRecognition;
+ const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+
  if(!Recognition){
   alert("Voice input is not supported in this browser. Try Chrome.");
   return;
@@ -408,12 +373,14 @@ function startVoice(){
  const lang=document.getElementById("language").value;
  recognition.lang=lang==="Hindi"?"hi-IN":"en-IN";
  recognition.interimResults=false;
+
  recognition.onresult=e=>{
-  const text=e.results[0][0].transcript;
-  document.getElementById("prompt").value+=
-   (document.getElementById("prompt").value?" ":"")+text;
+  const box=document.getElementById("prompt");
+  box.value+=(box.value?" ":"")+e.results[0][0].transcript;
  };
+
  recognition.onerror=()=>setStatus("Voice input failed. Try again.");
+ recognition.onend=()=>setStatus("Ready");
  recognition.start();
  setStatus("Listening...");
 }
@@ -425,6 +392,7 @@ function openCamera(){
 function showAttachments(){
  const area=document.getElementById("attachment");
  area.innerHTML="";
+
  attachments.forEach((a,i)=>{
   const item=document.createElement("div");
   item.style.cssText="font-size:12px;color:#bbb;padding:5px";
@@ -437,13 +405,36 @@ function showAttachments(){
    attachments.splice(i,1);
    showAttachments();
   };
+
   item.appendChild(remove);
   area.appendChild(item);
  });
 }
 
+async function uploadOriginalFileToDrive(file){
+ if(!driveConnected)return;
+
+ try{
+  const form=new FormData();
+  form.append("file",file,file.name);
+
+  const response=await fetch(DRIVE_UPLOAD_URL,{
+   method:"POST",
+   body:form,
+   credentials:"include"
+  });
+
+  const result=await response.json();
+  if(!response.ok)throw new Error(result.error||"Upload failed");
+
+  setStatus("Uploaded "+file.name+" to Google Drive.");
+ }catch(error){
+  setStatus("Drive upload failed: "+error.message);
+ }
+}
+
 async function handleFiles(event){
- const files=Array.from(event.target.files || []);
+ const files=Array.from(event.target.files||[]);
 
  for(const file of files){
   if(file.size>8*1024*1024){
@@ -451,34 +442,20 @@ async function handleFiles(event){
    continue;
   }
 
+  if(driveConnected)uploadOriginalFileToDrive(file);
+
   try{
    if(file.type.startsWith("image/")){
     const data=await readAsDataURL(file);
-    attachments.push({
-     name:file.name,
-     type:"image",
-     data
-    });
-   }else if(file.type==="text/plain" || file.name.endsWith(".txt")){
-    attachments.push({
-     name:file.name,
-     type:"text",
-     text:await file.text()
-    });
-   }else if(file.type==="application/pdf" || file.name.endsWith(".pdf")){
+    attachments.push({name:file.name,type:"image",data});
+   }else if(file.type==="text/plain"||file.name.toLowerCase().endsWith(".txt")){
+    attachments.push({name:file.name,type:"text",text:await file.text()});
+   }else if(file.type==="application/pdf"||file.name.toLowerCase().endsWith(".pdf")){
     const text=await extractPDF(file);
-    attachments.push({
-     name:file.name,
-     type:"text",
-     text
-    });
-   }else if(file.name.endsWith(".docx")){
+    attachments.push({name:file.name,type:"text",text});
+   }else if(file.name.toLowerCase().endsWith(".docx")){
     const result=await mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()});
-    attachments.push({
-     name:file.name,
-     type:"text",
-     text:result.value
-    });
+    attachments.push({name:file.name,type:"text",text:result.value});
    }else{
     alert("Unsupported file: "+file.name);
    }
@@ -486,6 +463,7 @@ async function handleFiles(event){
    alert("Could not read "+file.name+": "+error.message);
   }
  }
+
  showAttachments();
  event.target.value="";
 }
@@ -503,11 +481,13 @@ async function extractPDF(file){
  const data=await file.arrayBuffer();
  const pdf=await pdfjsLib.getDocument({data}).promise;
  let result="";
+
  for(let i=1;i<=pdf.numPages;i++){
   const page=await pdf.getPage(i);
   const content=await page.getTextContent();
   result+=content.items.map(item=>item.str).join(" ")+"\n";
  }
+
  return result;
 }
 
@@ -517,25 +497,26 @@ async function sendMessage(){
  const input=document.getElementById("prompt");
  const text=input.value.trim();
 
- if(!text && !attachments.length)return;
-
+ if(!text&&!attachments.length)return;
  if(!currentId)newChat();
 
  const images=attachments.filter(a=>a.type==="image");
  const documents=attachments.filter(a=>a.type==="text");
 
  let finalText=text;
+
  if(documents.length){
   finalText+="\n\nAttached document text:\n"+
    documents.map(d=>"--- "+d.name+" ---\n"+d.text.slice(0,20000)).join("\n\n");
  }
 
- if(!finalText && images.length)finalText="Please examine the attached image.";
+ if(!finalText&&images.length){
+  finalText="Please examine the attached image.";
+ }
 
- const firstImage=images[0]?.data || null;
+ const firstImage=images[0]?.data||null;
 
  addStoredMessage("user",finalText,firstImage);
-
  input.value="";
  attachments=[];
  showAttachments();
@@ -552,16 +533,17 @@ async function requestAI(){
  setStatus("Basanta is thinking...");
 
  const messages=chat.messages.slice(-20).map(m=>{
-  if(m.role==="user" && m.image){
+  if(m.role==="user"&&m.image){
    return {
     role:"user",
     content:[
-     {type:"text",text:m.text || "Please examine this image."},
+     {type:"text",text:m.text||"Please examine this image."},
      {type:"image_url",image_url:{url:m.image}}
     ]
    };
   }
-  return {role:m.role,content:m.text || ""};
+
+  return {role:m.role,content:m.text||""};
  });
 
  try{
@@ -574,12 +556,13 @@ async function requestAI(){
   const data=await response.json();
 
   if(!response.ok){
-   throw new Error(data.error || "Server error "+response.status);
+   throw new Error(data.error||"Server error "+response.status);
   }
 
   const answer=
-   data.choices?.[0]?.message?.content ||
-   data.response ||
+   data.choices?.[0]?.message?.content||
+   data.response||
+   data.result?.response||
    "I could not generate a response.";
 
   addStoredMessage("assistant",answer);
@@ -588,8 +571,7 @@ async function requestAI(){
   setStatus("Ready");
 
  }catch(error){
-  addStoredMessage(
-   "assistant",
+  addStoredMessage("assistant",
    "Sorry, I could not connect to Basanta AI.\n\nError: "+error.message
   );
   setStatus("Connection error");
@@ -601,9 +583,7 @@ async function requestAI(){
 
 async function regenerate(index){
  const chat=activeChat();
- if(!chat || busy)return;
-
- if(chat.messages[index]?.role!=="assistant")return;
+ if(!chat||busy||chat.messages[index]?.role!=="assistant")return;
 
  chat.messages=chat.messages.slice(0,index);
  saveChats();
@@ -630,8 +610,75 @@ function exportHistory(){
  URL.revokeObjectURL(url);
 }
 
+/* Google Drive integration */
+function connectDrive(){
+ window.location.href=API_BASE+"/oauth/start";
+}
+
+async function checkDriveStatus(){
+ try{
+  const response=await fetch(DRIVE_STATUS_URL,{credentials:"include"});
+  const data=await response.json();
+  driveConnected=!!data.connected;
+
+  document.getElementById("driveBtn").textContent=
+   driveConnected?"Drive connected":"Connect Drive";
+
+  if(driveConnected){
+   setStatus("Google Drive connected.");
+  }
+ }catch(e){
+  driveConnected=false;
+ }
+}
+
+function scheduleDriveBackup(){
+ if(!driveConnected)return;
+ clearTimeout(backupTimer);
+ backupTimer=setTimeout(backupNow,2500);
+}
+
+async function backupNow(){
+ if(!chats.length){
+  setStatus("There are no conversations to back up yet.");
+  return;
+ }
+
+ if(!driveConnected){
+  setStatus("Connect Google Drive first.");
+  return;
+ }
+
+ setStatus("Backing up conversations to Google Drive...");
+
+ try{
+  const response=await fetch(DRIVE_BACKUP_URL,{
+   method:"POST",
+   credentials:"include",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({
+    app:"Basanta_Model",
+    version:1,
+    backupDate:new Date().toISOString(),
+    chats
+   })
+  });
+
+  const data=await response.json();
+
+  if(!response.ok){
+   throw new Error(data.error||"Backup failed");
+  }
+
+  setStatus("Chat backup saved to Google Drive.");
+
+ }catch(error){
+  setStatus("Backup failed: "+error.message);
+ }
+}
+
 document.getElementById("prompt").addEventListener("keydown",e=>{
- if(e.key==="Enter" && !e.shiftKey){
+ if(e.key==="Enter"&&!e.shiftKey){
   e.preventDefault();
   sendMessage();
  }
@@ -645,6 +692,7 @@ if(chats.length){
 
 renderHistory();
 renderMessages();
+checkDriveStatus();
 
 if("serviceWorker" in navigator){
  window.addEventListener("load",()=>{
